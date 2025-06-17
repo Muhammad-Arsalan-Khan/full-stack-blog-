@@ -8,6 +8,7 @@ import LoginPage from "./Login";
 import SignupPage from "./signup"
 import Myblog from "./Myblog"
 import CreateBlog from "./CreateBlog";
+import UpdateBlog from "./UpdateBlog"
 
 function Home() {
  const [authCheck, setAuthCheck] = useState(false);
@@ -28,6 +29,7 @@ function Home() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/myblog" element={<Myblog />} /> 
+          <Route path="/updateblog/:blogId" element={<UpdateBlog />} />
         <Route path="/createblog" element={<CreateBlog />} /> 
       </Routes>
     </>

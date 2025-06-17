@@ -300,7 +300,8 @@ const Myblog = () => {
   };
 
   const handleUpdateClick = (blogId) => {
-    navigate(`/update-blog/${blogId}`); // Navigate to the update blog page
+    // console.log(id)
+    navigate(`/updateblog/${blogId}`); // Navigate to the update blog page
   };
 
   const handleDeleteClick = async (blogId) => {
@@ -340,6 +341,29 @@ const Myblog = () => {
               {selectedBlog.title}
             </Typography>
             {/* Other content like author, date, etc */}
+
+            <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  WebkitLineClamp: 3,
+                }}
+              >
+                {selectedBlog.content}
+              </Typography>
+
+              <Typography variant="body2" color="text.secondary">
+             <strong>Status:</strong> {selectedBlog.isPrivate ? "Private" : "Public"}
+           </Typography>
+            <Typography variant="body2" color="text.secondary">
+               <strong>Created At:</strong> {new Date(selectedBlog.createdAt).toLocaleString()}
+            </Typography>
+             <Typography variant="body2" color="text.secondary">
+               <strong>Updated At:</strong> {new Date(selectedBlog.updatedAt).toLocaleString()}
+           </Typography>
             
             {/* Action Buttons */}
             {isUserAuthor(selectedBlog.userId) && (
@@ -380,6 +404,18 @@ const Myblog = () => {
                 {data.title}
               </Typography>
               {/* Other content like author, content preview */}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  WebkitLineClamp: 3,
+                }}
+              >
+                {data.content}
+              </Typography>
               
               <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
                 <Button

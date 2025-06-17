@@ -1,19 +1,19 @@
 import User from "../Models/userSchema.js";
 import Blog from "../Models/blogSchema.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+// import jwt from "jsonwebtoken";
 const SECRETKEY = "721121821118";
 
 const login = async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-      return res.status(400).json({message: "field are required",})
+      return res.status(400).json({message: "field are required" })
     }
   try {
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
       return res.status(400).json({
-        message: "Invalid credentials",
+        message: "account does not exists",
       });
     }
     const isPasswordMatch = await bcrypt.compare(
@@ -21,25 +21,26 @@ const login = async (req, res) => {
       existingUser.password
     );
     if (!isPasswordMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid Email & Password" });
     }
-    // const userData = {
-    //     username: existingUser.username,
-    //     email: existingUser.email,
-    //     id: existingUser._id,
-    // }
-    const token = jwt.sign(
-      {
-        userId: existingUser._id,
+    const userData = {
         username: existingUser.username,
         email: existingUser.email,
-      },
-      process.env.JWT_SECRET || SECRETKEY,
-      { expiresIn: "24h" }
-    );
+        id: existingUser._id,
+    }
+    // const token = jwt.sign(
+    //   {
+    //     userId: existingUser._id,
+    //     username: existingUser.username,
+    //     email: existingUser.email,
+    //   },
+    //   process.env.JWT_SECRET || SECRETKEY,
+    //   { expiresIn: "24h" }
+    // );
+
     res.status(200).json({
       message: "Login successful",
-      token: token,
+      token: userData,
     });
   } catch (error) {
     console.log(error, error.message, error.code);
@@ -101,7 +102,7 @@ const createblogs = async (req, res) => {
   try {
     const { title, content, author, userId, imageUrl, isPrivate  } = req.body;
     console.log("Request body:", req.body);
-    if (!title || !content || !author || !userId, !isPrivate) {
+    if (!title || !content || !author || !userId ) {
       return res.status(400).json({ message: "All fields are required" });
     }
     const newBlog = new Blog({

@@ -20,7 +20,7 @@ const blogSchema = new mongoose.Schema(
     },
     isPrivate:{
       type: Boolean,
-      // default: false, // Default to public if not specified
+      default: false, // Default to public if not specified
     },
     createdAt: {
       type: Date,

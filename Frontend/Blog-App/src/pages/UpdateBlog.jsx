@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { TextField, Button, Box, Typography } from "@mui/material";
+import { TextField, Button, Box, Typography, FormControlLabel, Checkbox } from "@mui/material";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom"; // For accessing blogId in URL
+import { useNavigate, useParams } from "react-router-dom"; 
+import { ToastContainer, toast } from "react-toastify";
 
 const UpdateBlog = () => {
   const [blog, setBlog] = useState({
     title: "",
     content: "",
     author: "",
-    isPrivate: false,
+    isPrivate: false, // Default to false (public) until fetched
   });
 
   const { blogId } = useParams(); // Get blogId from URL
@@ -27,17 +28,35 @@ const UpdateBlog = () => {
   }, [blogId]);
 
   const handleChange = (e) => {
-    setBlog({
-      ...blog,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value, type, checked } = e.target;
+    
+    // Handle the checkbox value for privacy
+    if (type === "checkbox") {
+      setBlog({
+        ...blog,
+        id: blogId,
+        [name]: checked,
+      });
+    } else {
+      setBlog({
+        ...blog,
+        id: blogId,
+        [name]: value,
+      });
+    }
   };
 
   const handleUpdate = async () => {
     try {
-      const response = await axios.put(`http://localhost:5000/updateblogs/${blogId}`, blog);
+      const response = await axios.patch(`http://localhost:5000/updateblogs/${blogId}`, blog);
       console.log("Updated blog:", response.data);
-      navigate("/myblogs"); // Redirect to the blogs page
+      toast.success("Blog Update successfully!", {
+                position: "top-right",
+                autoClose: 3000,
+              });
+      setTimeout(() => {
+        navigate("/myblog");
+      }, 4000);
     } catch (error) {
       console.error("Error updating blog:", error);
     }
@@ -78,11 +97,37 @@ const UpdateBlog = () => {
         value={blog.author}
         onChange={handleChange}
       />
+
+      {/* Privacy Checkbox - "Private" or "Public" */}
+      <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={blog.isPrivate} // Use blog.isPrivate to set checkbox state
+              onChange={handleChange}
+              name="isPrivate" // Ensure name matches the state
+              color="primary"
+            />
+          }
+          label="Private"
+        />
+      </Box>
+
       <Box sx={{ marginTop: 2 }}>
         <Button variant="contained" color="primary" onClick={handleUpdate}>
           Update Blog
         </Button>
       </Box>
+      <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={true}
+              closeOnClick={true}
+              rtl={false}
+              pauseOnFocusLoss={false}
+              pauseOnHover={true}
+            />
     </Box>
   );
 };
