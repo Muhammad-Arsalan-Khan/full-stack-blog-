@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { TextField, Button, Box, Typography, FormControlLabel, Checkbox } from "@mui/material";
+import {
+  TextField,
+  Button,
+  Box,
+  Typography,
+  FormControlLabel,
+  Checkbox,
+} from "@mui/material";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom"; 
+import { useNavigate, useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 
 const UpdateBlog = () => {
@@ -10,6 +17,8 @@ const UpdateBlog = () => {
     content: "",
     author: "",
     isPrivate: false, // Default to false (public) until fetched
+    blogView: "",
+    isActive: true,
   });
 
   const { blogId } = useParams(); // Get blogId from URL
@@ -18,7 +27,10 @@ const UpdateBlog = () => {
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/blog/${blogId}`);
+        const response = await axios.get(
+          `http://localhost:5000/service/blog/${blogId}`,
+          { withCredentials: true }
+        );
         setBlog(response.data);
       } catch (error) {
         console.error("Error fetching blog:", error);
@@ -29,18 +41,18 @@ const UpdateBlog = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    
+
     // Handle the checkbox value for privacy
     if (type === "checkbox") {
       setBlog({
         ...blog,
-        id: blogId,
+        // id: blogId,
         [name]: checked,
       });
     } else {
       setBlog({
         ...blog,
-        id: blogId,
+        // id: blogId,
         [name]: value,
       });
     }
@@ -48,17 +60,36 @@ const UpdateBlog = () => {
 
   const handleUpdate = async () => {
     try {
-      const response = await axios.patch(`http://localhost:5000/updateblogs/${blogId}`, blog);
+      if (blog.blogView === "block") {
+        toast.error("This blog is blocked by admin!", {
+          position: "top-right",
+          autoClose: 3000,
+        });
+        return;
+      }
+      const response = await axios.patch(
+        `http://localhost:5000/service/updateblogs/${blogId}`,
+        blog,
+        {
+          withCredentials: true,
+
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
       console.log("Updated blog:", response.data);
       toast.success("Blog Update successfully!", {
-                position: "top-right",
-                autoClose: 3000,
-              });
+        position: "top-right",
+        autoClose: 3000,
+      });
       setTimeout(() => {
         navigate("/myblog");
       }, 4000);
     } catch (error) {
       console.error("Error updating blog:", error);
+      console.log(error.message);
+      console.log(error.code);
     }
   };
 
@@ -119,15 +150,15 @@ const UpdateBlog = () => {
         </Button>
       </Box>
       <ToastContainer
-              position="top-right"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop={true}
-              closeOnClick={true}
-              rtl={false}
-              pauseOnFocusLoss={false}
-              pauseOnHover={true}
-            />
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick={true}
+        rtl={false}
+        pauseOnFocusLoss={false}
+        pauseOnHover={true}
+      />
     </Box>
   );
 };
