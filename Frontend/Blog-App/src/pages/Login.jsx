@@ -1,6 +1,4 @@
 import React, { useState , useEffect} from "react";
-// import jwt from 'jsonwebtoken'
-// const secretKey = "721121821118"
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
 
@@ -17,7 +15,7 @@ import {
 import axios from "axios";
 import checkToken from "../services/authService"
 
-const LoginPage = () => {
+const LoginPage = ({ setAuthCheck }) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,8 +29,15 @@ const LoginPage = () => {
   },[])
   
 
-  const pageNavigate = () => {
-    navigate('/');
+  const pageNavigate = (id) => {
+    //navigate('/');
+    if ( id == "68604c3ffd47cbd70c73b98b" ){ //68604c3ffd47cbd70c73b98b
+        navigate('/admin');
+        return;
+      }else{
+        navigate('/')
+        return;
+      }
   };
 
 
@@ -56,12 +61,25 @@ const LoginPage = () => {
         email: email,
         password: password,
       };
-      const response = await axios.post("http://localhost:5000/login", data);
+      const response = await axios.post("http://localhost:5000/auth/login", data, { withCredentials: true });
       const userdata = response.data;
-      const { message, token } = userdata;
+      const { message, user } = userdata;
+      console.log(user.id, user.id.typeof);
       // console.log(message, token);
-      localStorage.setItem("token", token.id)
-      pageNavigate()
+      localStorage.setItem("token", user.id)
+      // pageNavigate(user.id)
+      setAuthCheck(true);
+      // if ( user.id == "68604c3ffd47cbd70c73b98b" ){ //68604c3ffd47cbd70c73b98b
+      //   navigate('/admin');
+      //   return;
+      // }
+      toast.success(message, {
+          position: "top-right",
+          autoClose: 3000, // 5 seconds tak dikhaye
+        });
+        setTimeout(() => {
+        pageNavigate(user.id)
+      }, 4000);
     } catch (error) {
       console.error("Error:", error);
       if (error.response && error.response.status === 400) {
