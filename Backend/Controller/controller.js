@@ -1,14 +1,15 @@
 import User from "../Models/userSchema.js";
 import Blog from "../Models/blogSchema.js";
 import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
-const SECRETKEY = "721121821118";
+import { setUser } from "../auth/auth.js";
 
 const login = async (req, res) => {
+  // console.log(req.cookies.JWTtoken)
+  // console.log(req.headers)
   const { email, password } = req.body;
   if (!email || !password) {
-      return res.status(400).json({message: "field are required" })
-    }
+    return res.status(400).json({ message: "field are required" });
+  }
   try {
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
@@ -24,23 +25,37 @@ const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid Email & Password" });
     }
     const userData = {
-        username: existingUser.username,
-        email: existingUser.email,
-        id: existingUser._id,
-    }
+      username: existingUser.username,
+      email: existingUser.email,
+      id: existingUser._id,
+    };
     // const token = jwt.sign(
-    //   {
-    //     userId: existingUser._id,
-    //     username: existingUser.username,
-    //     email: existingUser.email,
-    //   },
+    //   userData,
     //   process.env.JWT_SECRET || SECRETKEY,
     //   { expiresIn: "24h" }
     // );
+    const token = setUser(userData); //genrate token using setUser function
+    console.log("Token generated:", token);
+    //     agar ap production me ho tu
+    //   res.cookie("JWTtoken", token, {
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === 'production',  // Set to false in local development
+    //   sameSite: 'None', // Cross-origin support (if required)
+    //   maxAge: 24 * 60 * 60 * 1000, // Cookie expiry time (1 day)
+    // });
 
+    // agar ap local me ho tu
+    // res.cookie("JWTtoken", token,{
+    //   httpOnly: true,
+    //   secure: false, // Local development mein false karen
+    //   sameSite: "None", // Cross-origin request allow karna
+    //   // maxAge: 24 * 60 * 60 * 1000, // Cookie expiration time
+    // },);
+
+    res.cookie("JWTtoken", token);
     res.status(200).json({
       message: "Login successful",
-      token: userData,
+      user: userData,
     });
   } catch (error) {
     console.log(error, error.message, error.code);
@@ -57,7 +72,7 @@ const signup = async (req, res) => {
   const { username, email, password } = req.body;
   try {
     if (!username || !email || !password) {
-      return res.status(400).json({message: "field are required",})
+      return res.status(400).json({ message: "field are required" });
     }
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -70,6 +85,7 @@ const signup = async (req, res) => {
       username,
       email,
       password: hashedPassword,
+      isActive: true, // Default to active
     });
 
     await newUser.save();
@@ -100,18 +116,22 @@ const createblogs = async (req, res) => {
   //   message: "Blogs endpoint is working",
   // });
   try {
-    const { title, content, author, userId, imageUrl, isPrivate  } = req.body;
+    const { title, content, author, userId, imageUrl, isPrivate, likesArray , blogView } =
+      req.body;
     console.log("Request body:", req.body);
-    if (!title || !content || !author || !userId ) {
+    if (!title || !content || !author || !userId) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
     const newBlog = new Blog({
       userId, // Assuming you want to store the userId who created the blog
       title,
       content,
       author,
       isPrivate, // Default to public if not specified
-      imageUrl, // Optional image URL
+      imageUrl,
+      likesArray: [],
+      blogView: "", 
     });
     await newBlog.save();
     console.log("Blog saved successfully:", newBlog);
@@ -129,13 +149,14 @@ const createblogs = async (req, res) => {
 };
 
 const Updateblogs = async (req, res) => {
+  const id = req.params.id;
   try {
-    const { id, title, content, author, imageUrl, isPrivate, userId } = req.body;
+    const { title, content, author, imageUrl, isPrivate, userId } = req.body;
     if (!id) {
       return res.status(400).json({ message: "Blog ID is required" });
     }
     const UpdatedBlog = await Blog.findByIdAndUpdate(
-       id,
+      id,
       {
         title,
         userId,
@@ -156,19 +177,19 @@ const Updateblogs = async (req, res) => {
       updateBlog: UpdatedBlog,
     });
   } catch (error) {
-    console.error("Error updating blog:", error, error.message, error.code );
+    console.error("Error updating blog:", error, error.message, error.code);
     return res.status(500).json({
       message: "Something went wrong while updating the blog!",
       error: error.message,
     });
   }
-//  res.status(200).json({ message: "update the blog" });
+  //  res.status(200).json({ message: "update the blog" });
 };
 
-const deleteblogs = async (req , res ) =>{
+const deleteblogs = async (req, res) => {
   const blogId = req.params.id;
   try {
-    const deletedBlog = await Blog.findByIdAndDelete(blogId)
+    const deletedBlog = await Blog.findByIdAndDelete(blogId);
 
     if (!deletedBlog) {
       return res.status(404).json({ message: "Blog not found" });
@@ -178,7 +199,6 @@ const deleteblogs = async (req , res ) =>{
       message: "Blog deleted successfully",
       deletedUser: deletedBlog,
     });
-
   } catch (error) {
     console.error("Error deleting blog:", error, error.message, error.code);
     return res.status(500).json({
@@ -187,27 +207,39 @@ const deleteblogs = async (req , res ) =>{
     });
   }
   // res.status(200).json({ message: "delete the blog" });
-}
-
+};
 
 const blogs = async (req, res) => {
   try {
-        const blogs = await Blog.find();
-        if (!blogs || blogs.length === 0) {
-            return res.status(404).json({ message: "No blogs found" });
-        }
-        const publicBlogs = blogs.filter(blog => !blog.isPrivate);
-        if (publicBlogs.length === 0) {
-            return res.status(404).json({ message: "No public blogs found" });
-           }
-
-         res.status(200).json(publicBlogs);
-
-    } catch (error) {
-        console.error("Error fetching blogs:", error);
-        return res.status(500).json({ message: "Internal server error" });
+    const blogs = await Blog.find();
+    if (!blogs || blogs.length === 0) {
+      return res.status(404).json({ message: "No blogs found" });
     }
-}
+    const publicBlogs = blogs.filter((blog) => !blog.isPrivate);
+    if (publicBlogs.length === 0) {
+      return res.status(404).json({ message: "No public blogs found" });
+    }
+
+    res.status(200).json(publicBlogs);
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//admin get all blogs
+const allblogs = async (req, res) => {
+  try {
+    const blogs = await Blog.find();
+    if (!blogs || blogs.length === 0) {
+      return res.status(404).json({ message: "No blogs found" });
+    }
+    res.status(200).json(blogs);
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 // Get blogs by user ID
 const getBlogByUserId = async (req, res) => {
@@ -215,18 +247,18 @@ const getBlogByUserId = async (req, res) => {
   try {
     const blogs = await Blog.find();
     if (!blogs || blogs.length === 0) {
-            return res.status(404).json({ message: "No blogs found" });
+      return res.status(404).json({ message: "No blogs found" });
     }
-    const userBlogs = blogs.filter(blog => blog.userId == UserId);
-        if (userBlogs.length === 0) {
-            return res.status(404).json({ message: "you do not write any blog" });
-           }
-    res.status(200).json(userBlogs)
+    const userBlogs = blogs.filter((blog) => blog.userId == UserId);
+    if (userBlogs.length === 0) {
+      return res.status(404).json({ message: "you do not write any blog" });
+    }
+    res.status(200).json(userBlogs);
   } catch (error) {
     console.error("Error fetching blog:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
 
 //Get single blog
 const getBlogById = async (req, res) => {
@@ -235,13 +267,118 @@ const getBlogById = async (req, res) => {
     const blog = await Blog.findById(blogId);
     if (!blog) {
       return res.status(404).json({ message: "Blog not found" });
-    } 
+    }
     return res.status(200).json(blog);
   } catch (error) {
     console.error("Error fetching blog:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
+};
+
+const likeblogs = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const { likes } = req.body; // likes should be the user ID who is liking or unliking
+    console.log(likes); // To see the like ID
+
+    if (!likes) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Find the blog post by ID
+    const blog = await Blog.findById(postId);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    // Check if the user has already liked the blog
+    const index = blog.likesArray.indexOf(likes);
+
+    if (index > -1) {
+      // User has already liked, so remove the like
+      blog.likesArray.splice(index, 1);
+      console.log(`User ${likes} unliked the blog`);
+    } else {
+      // User has not liked, so add the like
+      blog.likesArray.push(likes);
+      console.log(`User ${likes} liked the blog`);
+    }
+
+    // Save the updated blog
+    const updatedBlog = await blog.save();
+
+    console.log("Blog like status updated successfully:", updatedBlog);
+    return res.status(201).json({
+      message: "Blog like status updated successfully!",
+      updateBlog: updatedBlog,
+    });
+  } catch (error) {
+    console.error("Error updating blog:", error.message);
+    return res.status(500).json({
+      message: "Something went wrong while updating the blog!",
+      error: error.message,
+    });
+  }
+};
+
+//admin get all users
+const allUser = async (req, res) => {
+  try {
+    const users = await User.find();
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const userUpdate = async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const { isActive } = req.body;
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+    // const hashedPassword = await bcrypt.hash(password, 10);
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        isActive,
+        updatedAt: new Date(),
+      },
+      { new: true }
+    ); // ya update doc retuern karega;
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    console.log("User update successfully:", updatedUser);
+    return res.status(201).json({
+      message: "User update successfully!",
+      updateUser: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error, error.message, error.code);
+    return res.status(500).json({
+      message: "Something went wrong while updating the user!",
+      error: error.message,
+    });
+  }
 }
 
-export { login, signup, createblogs, Updateblogs, deleteblogs, blogs, getBlogByUserId, getBlogById};
-
+export {
+  login,
+  signup,
+  createblogs,
+  Updateblogs,
+  deleteblogs,
+  blogs,
+  getBlogByUserId,
+  getBlogById,
+  likeblogs,
+  allblogs,
+  allUser,
+  userUpdate
+};
