@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TextField, Button, Typography, Box, Link, Card, CardContent, InputAdornment } from '@mui/material';
 import { ToastContainer, toast } from "react-toastify";
 import { useNavigate } from 'react-router-dom';
@@ -50,7 +50,7 @@ const SignupPage = () => {
             email: email,
             password: password,
           };
-          const response = await axios.post("http://localhost:5000/signup", data);
+          const response = await axios.post("http://localhost:5000/auth/signup", data);
           const userdata = response.data;
           const { message, user } = userdata;
           // console.log(message, user);
