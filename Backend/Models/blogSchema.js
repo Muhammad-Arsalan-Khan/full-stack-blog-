@@ -18,7 +18,7 @@ const blogSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    isPrivate:{
+    isPrivate: {
       type: Boolean,
       default: false, // Default to public if not specified
     },
@@ -31,10 +31,19 @@ const blogSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+
     imageUrl: {
       type: String,
       default: "", // optional image
     },
+    likesArray: {
+      type: [String], // Array of user IDs
+      default: [],
+    },
+    blogView: {
+      type: String,
+      default: "", // Default to empty string if not specified
+    }
   },
   { timestamps: true }
 ); // Correct
