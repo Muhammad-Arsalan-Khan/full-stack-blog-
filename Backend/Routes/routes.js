@@ -22,6 +22,6 @@ router.get('/blogs/:id', getBlogByUserId);
 
 router.get('/blog/:id', getBlogById);
 
-router.patch('/likeblogs/:id', likeblogs);
+router.patch(' ', likeblogs);
 
 export default router;

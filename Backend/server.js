@@ -3,7 +3,11 @@ import { connectMongoDB } from './connection.js';
 import dotenv from 'dotenv'
 import { logReqRes } from './middleware/middleware.js';
 import BlogRoute from './Routes/routes.js';
+import homeRoute from './Routes/homeRoute.js';
+import BlogAuthRoute from './Routes/authRoutes.js';
 import cors from 'cors'
+import cookieParser from 'cookie-parser';
+import { authCheck } from './middleware/auth.js';
 const app = express();
 
 // Load environment variables
@@ -11,7 +15,14 @@ dotenv.config();
 
 app.use(logReqRes("log.txt"))
 app.use(express.json());
-app.use(cors());
+const corsOptions = {
+  origin: 'http://localhost:5173', // Specific frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH',], // Allowed HTTP methods
+  credentials: true,  // Allow cookies to be sent with requests
+};
+
+app.use(cors(corsOptions));
+app.use(cookieParser())
 
 // Connect to MongoDB
 // mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -26,7 +37,10 @@ connectMongoDB(process.env.MONGO_URI).then(()=>{console.log("connect to MongoDB"
 //mongodb+srv://blogadmin:7211Blogpass1181@blogcluster.e43lnfu.mongodb.net/?retryWrites=true&w=majority&appName=BlogCluster
 
 // Basic route
-app.use("/", BlogRoute);
+app.use("/", homeRoute);
+app.use("/auth", BlogAuthRoute);
+app.use("/service", authCheck, BlogRoute);
+// app.use("/service", authCheck,  BlogRoute); 
 // app.get('/', (req, res) => {
 //   res.send('Hello, World!');
 // });
