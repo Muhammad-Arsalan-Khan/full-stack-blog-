@@ -96,6 +96,9 @@ const AllBlog = () => {
               <Typography variant="body2" color="text.secondary">
                 <strong>Likes:</strong> {selectedBlog.likesArray.length}
               </Typography>
+              <Typography variant="body2" color="text.secondary">
+                <strong>Commit:</strong> {selectedBlog.commitArray.length}
+              </Typography>
 
               {/* Delete Button */}
               <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
