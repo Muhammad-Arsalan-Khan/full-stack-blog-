@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import {createblogs, Updateblogs, deleteblogs, blogs, getBlogByUserId, getBlogById, likeblogs , allblogs, allUser, userUpdate } from '../Controller/controller.js';
+import {createblogs, Updateblogs, deleteblogs, blogs, getBlogByUserId, getBlogById, likeblogs , allblogs, allUser, userUpdate, commitBlogs } from '../Controller/controller.js';
 
 // router.post('/login',login);
 
@@ -22,6 +22,7 @@ router.get('/blogs/:id', getBlogByUserId);
 
 router.get('/blog/:id', getBlogById);
 
-router.patch(' ', likeblogs);
+router.patch('/likeblogs/:id', likeblogs);
+router.patch('/commits/:id', commitBlogs)
 
 export default router;
