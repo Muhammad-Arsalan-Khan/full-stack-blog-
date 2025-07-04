@@ -116,8 +116,17 @@ const createblogs = async (req, res) => {
   //   message: "Blogs endpoint is working",
   // });
   try {
-    const { title, content, author, userId, imageUrl, isPrivate, likesArray , blogView } =
-      req.body;
+    const {
+      title,
+      content,
+      author,
+      userId,
+      imageUrl,
+      isPrivate,
+      likesArray,
+      blogView,
+      commitArray,
+    } = req.body;
     console.log("Request body:", req.body);
     if (!title || !content || !author || !userId) {
       return res.status(400).json({ message: "All fields are required" });
@@ -131,7 +140,8 @@ const createblogs = async (req, res) => {
       isPrivate, // Default to public if not specified
       imageUrl,
       likesArray: [],
-      blogView: "", 
+      blogView: "",
+      commitArray: [],
     });
     await newBlog.save();
     console.log("Blog saved successfully:", newBlog);
@@ -321,6 +331,41 @@ const likeblogs = async (req, res) => {
   }
 };
 
+const commitBlogs = async (req, res) => {
+  const blogId = req.params.id;
+  try {
+    const { commit } = req.body;
+    if (!blogId) {
+      return res.status(400).json({ message: "Blog ID is required" });
+    }
+    if (!commit) {
+      return res.status(400).json({ message: "write a commit" });
+    }
+    const blog = await Blog.findById(blogId);
+    if (!blog) {
+      return res.status(404).json({ message: "Blog not found" });
+    }
+
+    blog.commitArray.push(commit);
+    console.log(`User -> ${commit} `);
+    const updatedBlog = await blog.save();
+
+    console.log("user successfully commit:", updatedBlog);
+    return res.status(201).json({
+      message: "Blog commit status updated successfully!",
+      updateBlog: updatedBlog,
+    });
+  } catch (error) {
+    console.error("Error committing blog:", error, error.message, error.code);
+    return res
+      .status(500)
+      .json({
+        error: error.message,
+        message: "Something went wrong while committing the blog!",
+      });
+  }
+};
+
 //admin get all users
 const allUser = async (req, res) => {
   try {
@@ -366,7 +411,7 @@ const userUpdate = async (req, res) => {
       error: error.message,
     });
   }
-}
+};
 
 export {
   login,
@@ -380,5 +425,6 @@ export {
   likeblogs,
   allblogs,
   allUser,
-  userUpdate
+  userUpdate,
+  commitBlogs
 };
