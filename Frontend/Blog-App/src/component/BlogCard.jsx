@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, Typography, Button, Box } from "@mui/material";
+import { ToastContainer, toast } from "react-toastify";
+import {
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Box,
+  TextField,
+  ListItem,
+  ListItemText,
+  Divider,
+  List,
+} from "@mui/material";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -8,6 +20,7 @@ const BlogCard = () => {
   const [selectedBlog, setSelectedBlog] = useState(null); // State to track selected blog
   const [likeCount, setLikeCount] = useState(0);
   const [likeCheck, setlikeCheck] = useState(false);
+  const [Comment, setComment] = useState(""); // State for comment input
   const id = localStorage.getItem("token"); // Get userId from localStorage
   const navigate = useNavigate();
   const [likeId, setLikeId] = useState("");
@@ -40,7 +53,34 @@ const BlogCard = () => {
   };
   const handleUiCard = () => {
     setSelectedBlog(null); // Reset selected blog to show all blogs
-  }
+  };
+
+  const handleCommit = async (id) => {
+    if (!Comment) {
+      toast.error("Please enter a comment before submitting.", {
+        position: "top-right",
+        autoClose: 5000,
+      });
+      return;
+    }
+    console.log(Comment);
+    try {
+      const CommitResponse = await axios.patch(
+        `http://localhost:5000/service/commits/${id}`,
+        {
+          commit: {
+            commitMessage: Comment,
+            commitWriter: id, 
+          }, 
+        },
+        { withCredentials: true }
+      );
+      console.log("Like response:", CommitResponse.data);
+      setComment(""); // Clear the comment input after submission
+    } catch (error) {
+      console.log(error, error.message, error.code)
+    }
+  };
 
   const handleLike = async (selectedBlog) => {
     setlikeCheck(!likeCheck); // ui Toggle like state
@@ -65,74 +105,94 @@ const BlogCard = () => {
       {/* If a blog is selected, show only that blog, otherwise show all blogs */}
       {selectedBlog ? (
         <>
-      <Button variant="contained" color="primary" sx={{marginLeft:"120px", marginTop:"5px"}} onClick={handleUiCard} >
-        ← back
-      </Button>
-        <Card
-          key={selectedBlog._id}
-          sx={{
-            width: "70%",
-            margin: "25px auto",
-            cursor: "pointer",
-            display: "block",
-          }}
-        >
-          <CardContent>
-            {/* Blog Title */}
-            <Typography variant="h6" component="div" gutterBottom>
-              {selectedBlog.title}
-            </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            sx={{ marginLeft: "120px", marginTop: "5px" }}
+            onClick={handleUiCard}
+          >
+            ← back
+          </Button>
+          <Card
+            key={selectedBlog._id}
+            sx={{
+              width: "70%",
+              margin: "25px auto",
+              cursor: "pointer",
+              display: "block",
+            }}
+          >
+            <CardContent>
+              {/* Blog Title */}
+              <Typography variant="h6" component="div" gutterBottom>
+                {selectedBlog.title}
+              </Typography>
 
-            {/* Blog Author */}
-            <Typography variant="body2" color="text.secondary">
-              <strong>Author:</strong> {selectedBlog.author}
-            </Typography>
+              {/* Image Display */}
+              {selectedBlog.imageUrl && (
+                <Box sx={{ textAlign: "center", marginBottom: 2 }}>
+                  <img
+                    src={selectedBlog.imageUrl}
+                    alt="Blog"
+                    style={{
+                      maxWidth: "100%",
+                      height: "auto",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </Box>
+              )}
 
-            {/* Blog Content (Showing the full content) */}
-            <Typography variant="body2" color="text.secondary">
-              {selectedBlog.content}
-            </Typography>
+              {/* Blog Author */}
+              <Typography variant="body2" color="text.secondary">
+                <strong>Author:</strong> {selectedBlog.author}
+              </Typography>
 
-            {/* Blog Status (Public/Private) */}
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ marginTop: 1 }}
-            >
-              <strong>Status:</strong>{" "}
-              {selectedBlog.isPrivate ? "Private" : "Public"}
-            </Typography>
+              {/* Blog Content (Showing the full content) */}
+              <Typography variant="body2" color="text.secondary">
+                {selectedBlog.content}
+              </Typography>
 
-            {/* Blog Created and Updated Dates */}
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ marginTop: 1 }}
-            >
-              <strong>Created At:</strong>{" "}
-              {new Date(selectedBlog.createdAt).toLocaleString()}
-            </Typography>
-            {/* <Typography variant="body2" color="text.secondary" sx={{ marginTop: 1 }}>
+              {/* Blog Status (Public/Private) */}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ marginTop: 1 }}
+              >
+                <strong>Status:</strong>{" "}
+                {selectedBlog.isPrivate ? "Private" : "Public"}
+              </Typography>
+
+              {/* Blog Created and Updated Dates */}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ marginTop: 1 }}
+              >
+                <strong>Created At:</strong>{" "}
+                {new Date(selectedBlog.createdAt).toLocaleString()}
+              </Typography>
+              {/* <Typography variant="body2" color="text.secondary" sx={{ marginTop: 1 }}>
               <strong>Updated At:🖤</strong> {new Date(selectedBlog.updatedAt).toLocaleString()}
             </Typography> */}
-            <Typography
-              variant="h4"
-              color="text.secondary"
-              sx={{ marginTop: 1 }}
-              onClick={() => handleLike(selectedBlog)}
-            >
-              {selectedBlog.likesArray.includes(id)
-                ? "💖"
-                : likeCheck
-                ? "💖"
-                : "🖤"}
-              <Typography variant="body2" marginLeft={2.4}>
-                {likeCount}
+              <Typography
+                variant="h4"
+                color="text.secondary"
+                sx={{ marginTop: 1 }}
+                onClick={() => handleLike(selectedBlog)}
+              >
+                {selectedBlog.likesArray.includes(id)
+                  ? "💖"
+                  : likeCheck
+                  ? "💖"
+                  : "🖤"}
+                <Typography variant="body2" marginLeft={2.4}>
+                  {likeCount}
+                </Typography>
               </Typography>
-            </Typography>
 
-            {/* Action Buttons: Update & Delete */}
-            {/* {isUserAuthor(selectedBlog.userId) && ( // Show buttons only if the current user is the author
+              {/* Action Buttons: Update & Delete */}
+              {/* {isUserAuthor(selectedBlog.userId) && ( // Show buttons only if the current user is the author
               <Box sx={{ display: "flex", justifyContent: "space-between", marginTop: 2 }}>
                 <Button variant="outlined" size="small">
                   Update
@@ -142,8 +202,59 @@ const BlogCard = () => {
                 </Button>
               </Box>
             )} */}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+          <Card
+            key={selectedBlog._id + "comment"}
+            sx={{
+              width: "70%",
+              margin: "25px auto",
+              cursor: "pointer",
+              display: "block",
+            }}
+          >
+            <CardContent>
+              <TextField
+                label="Comment ..."
+                variant="outlined"
+                fullWidth
+                sx={{ marginBottom: 2 }}
+                value={Comment}
+                onChange={(e) => setComment(e.target.value)}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={()=>handleCommit(selectedBlog._id)}
+              >
+                ➤
+              </Button>
+
+              {selectedBlog.commitArray && (
+                <List>
+                  {selectedBlog.commitArray.map((commit) => (
+                    <div key={commit.commitWriter}>
+                      <ListItem>
+                        <ListItemText
+                          // primary={<strong>{commit.commitWriter}</strong>}
+                          secondary={commit.commitMessage}
+                        />
+                      </ListItem>
+                      <Divider />
+                    </div>
+                  ))}
+                </List>
+              )}
+            </CardContent>
+            {/* Toast Notifications */}
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={true}
+              closeOnClick={true}
+            />
+          </Card>
         </>
       ) : (
         // If no blog is selected, show all blogs
