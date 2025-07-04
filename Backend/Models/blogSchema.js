@@ -43,7 +43,11 @@ const blogSchema = new mongoose.Schema(
     blogView: {
       type: String,
       default: "", // Default to empty string if not specified
-    }
+    },
+    commitArray : {
+    type: [Object],
+    default: [], // Default to empty string if not specified
+  },
   },
   { timestamps: true }
 ); // Correct
