@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
+import { BiSolidLike, BiLike } from "react-icons/bi";
+
 import {
   Card,
   CardContent,
@@ -182,11 +184,11 @@ const BlogCard = () => {
                 onClick={() => handleLike(selectedBlog)}
               >
                 {selectedBlog.likesArray.includes(id)
-                  ? "💖"
+                  ? <BiSolidLike />
                   : likeCheck
-                  ? "💖"
-                  : "🖤"}
-                <Typography variant="body2" marginLeft={2.4}>
+                  ? <BiSolidLike />
+                  : <BiLike />}
+                <Typography variant="body2" marginLeft={1.7}>
                   {likeCount}
                 </Typography>
               </Typography>
@@ -300,7 +302,7 @@ const BlogCard = () => {
                 color="text.secondary"
                 sx={{ marginTop: 1 }}
               >
-                <strong>Status:</strong> {data.isPrivate ? "Private" : "Public"}
+                <strong>Status:</strong> { data.isPrivate ? "Private" : "Public"}
               </Typography>
 
               {/* Blog Created and Updated Dates */}
