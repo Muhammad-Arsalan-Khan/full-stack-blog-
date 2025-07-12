@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true, // Default to active
     },
+    isVerified : {
+      type: Boolean,
+      default: false,
+    }
   },
   { timestamps: true }
 ); // Correct
