@@ -11,6 +11,7 @@ const SignupPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+ 
 
    useEffect(()=>{
       const tokenStatus = checkToken();
@@ -19,8 +20,8 @@ const SignupPage = () => {
       }
     },[])
 
-  const pageNavigate = () => {
-    navigate('/login');
+  const pageNavigate = (id) => {
+    navigate(`/otp/${id}`);
   };
 
   const handleUsernameChange = (e) => {
@@ -53,8 +54,8 @@ const SignupPage = () => {
           const response = await axios.post("http://localhost:5000/auth/signup", data);
           const userdata = response.data;
           const { message, user } = userdata;
-          // console.log(message, user);
-          pageNavigate()
+          console.log(message, user);
+          pageNavigate(user.id)
         } catch (error) {
           console.error("Error:", error);
           if (error.response && error.response.status === 400) {
