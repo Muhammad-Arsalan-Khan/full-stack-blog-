@@ -6,6 +6,7 @@ import checkToken from "../services/authService";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import LoginPage from "./Login";
 import SignupPage from "./signup";
+import OPT from "./opt"
 import Myblog from "./Myblog";
 import CreateBlog from "./CreateBlog";
 import UpdateBlog from "./UpdateBlog";
@@ -15,6 +16,7 @@ import PrivateRoute from "../routes/privateRoutes";
 import AdminDashboard from "./adminPage/AdminDashboard"
 import AllUser from "./adminPage/AllUser"
 import AllBlog from "./adminPage/AllBlog";
+import OTP from "./opt";
 
 function Home() {
   const [authCheck, setAuthCheck] = useState(false);
@@ -46,6 +48,7 @@ function Home() {
         {/* auth Routes */}
         <Route element={<AuthRoute />}>
           <Route path="/login" element={<LoginPage setAuthCheck={setAuthCheck}  />} />
+          <Route path="/otp/:id" element={<OTP />} />
           <Route path="/signup" element={<SignupPage />} />
         </Route>
 
