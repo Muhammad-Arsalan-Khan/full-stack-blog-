@@ -1,6 +1,6 @@
-import React, { useState , useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 import {
   TextField,
@@ -13,7 +13,8 @@ import {
   InputAdornment,
 } from "@mui/material";
 import axios from "axios";
-import checkToken from "../services/authService"
+import checkToken from "../services/authService";
+let id;
 
 const LoginPage = ({ setAuthCheck }) => {
   const navigate = useNavigate();
@@ -21,25 +22,24 @@ const LoginPage = ({ setAuthCheck }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  useEffect(()=>{
+  useEffect(() => {
     const tokenStatus = checkToken();
-    if(tokenStatus){
-      pageNavigate()
+    if (tokenStatus) {
+      pageNavigate();
     }
-  },[])
-  
+  }, []);
 
   const pageNavigate = (id) => {
     //navigate('/');
-    if ( id == "68604c3ffd47cbd70c73b98b" ){ //68604c3ffd47cbd70c73b98b
-        navigate('/admin');
-        return;
-      }else{
-        navigate('/')
-        return;
-      }
+    if (id == "68604c3ffd47cbd70c73b98b") {
+      //68604c3ffd47cbd70c73b98b
+      navigate("/admin");
+      return;
+    } else {
+      navigate("/");
+      return;
+    }
   };
-
 
   const handleEmailChange = (e) => {
     setEmail(e.target.value);
@@ -61,12 +61,17 @@ const LoginPage = ({ setAuthCheck }) => {
         email: email,
         password: password,
       };
-      const response = await axios.post("http://localhost:5000/auth/login", data, { withCredentials: true });
+      const response = await axios.post(
+        "http://localhost:5000/auth/login",
+        data,
+        { withCredentials: true }
+      );
       const userdata = response.data;
       const { message, user } = userdata;
       console.log(user.id, user.id.typeof);
       // console.log(message, token);
-      localStorage.setItem("token", user.id)
+      id = user.id
+      localStorage.setItem("token", user.id);
       // pageNavigate(user.id)
       setAuthCheck(true);
       // if ( user.id == "68604c3ffd47cbd70c73b98b" ){ //68604c3ffd47cbd70c73b98b
@@ -74,19 +79,31 @@ const LoginPage = ({ setAuthCheck }) => {
       //   return;
       // }
       toast.success(message, {
-          position: "top-right",
-          autoClose: 3000, // 5 seconds tak dikhaye
-        });
-        setTimeout(() => {
-        pageNavigate(user.id)
+        position: "top-right",
+        autoClose: 3000, // 5 seconds tak dikhaye
+      });
+      setTimeout(() => {
+        pageNavigate(user.id);
       }, 4000);
     } catch (error) {
       console.error("Error:", error);
-      if (error.response && error.response.status === 400) {
-        toast.error("Invalid Email & Password.", {
+      if (
+        error.message == "verify the email" &&
+        error.response.status === 401
+      ) {
+        toast.error(error.message, {
           position: "top-right",
-          autoClose: 5000, // 5 seconds tak dikhaye
+          autoClose: 2000,
         });
+        setTimeout(() => {
+          navigate(`otp/${id}`);
+        }, 3000);
+        if (error.response && error.response.status === 400) {
+          toast.error("Invalid Email & Password.", {
+            position: "top-right",
+            autoClose: 5000,
+          });
+        }
       }
     }
   };
