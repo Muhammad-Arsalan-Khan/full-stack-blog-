@@ -2,6 +2,9 @@ import User from "../Models/userSchema.js";
 import Blog from "../Models/blogSchema.js";
 import bcrypt from "bcryptjs";
 import { setUser } from "../auth/auth.js";
+import { verifyEmail } from "../nodemailer/nodemailer.js";
+
+const optGenrate = Math.floor(100000 + Math.random() * 900000);
 
 const login = async (req, res) => {
   // console.log(req.cookies.JWTtoken)
@@ -23,6 +26,12 @@ const login = async (req, res) => {
     );
     if (!isPasswordMatch) {
       return res.status(400).json({ message: "Invalid Email & Password" });
+    }
+    if (!existingUser.isVerified) {
+      verifyEmail(existingUser.email, optGenrate);
+      return res.status(401).json({
+        message: "verify the email",
+      });
     }
     const userData = {
       username: existingUser.username,
@@ -89,6 +98,7 @@ const signup = async (req, res) => {
     });
 
     await newUser.save();
+    verifyEmail(newUser.email, optGenrate);
     return res.status(201).json({
       message: "User registered successfully!",
       user: {
@@ -223,7 +233,7 @@ const blogs = async (req, res) => {
   try {
     const blogs = await Blog.find();
     if (!blogs || blogs.length === 0) {
-      return res.status(404).json({ message: "No blogs found" });
+      return res.status(404).json({ message: "No blogs found " });
     }
     const publicBlogs = blogs.filter((blog) => !blog.isPrivate);
     if (publicBlogs.length === 0) {
@@ -357,12 +367,10 @@ const commitBlogs = async (req, res) => {
     });
   } catch (error) {
     console.error("Error committing blog:", error, error.message, error.code);
-    return res
-      .status(500)
-      .json({
-        error: error.message,
-        message: "Something went wrong while committing the blog!",
-      });
+    return res.status(500).json({
+      error: error.message,
+      message: "Something went wrong while committing the blog!",
+    });
   }
 };
 
@@ -413,6 +421,47 @@ const userUpdate = async (req, res) => {
   }
 };
 
+const opt = async (req, res) => {
+  const userId = req.params.id;
+  console.log(optGenrate)
+  try {
+    const { isVerified, optvalue } = req.body;
+    console.log(optvalue, optGenrate)
+    console.log(typeof optGenrate)
+    console.log(typeof optvalue)
+    const OtpValue = Number(optvalue)
+    console.log(OtpValue)
+    if (OtpValue !== optGenrate){
+      return res.status(401).json({ message: "wrong OTP" });
+    }
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        isVerified,
+      },
+      { new: true }
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    console.log("User update successfully:", updatedUser);
+    return res.status(201).json({
+      message: "Approved",
+      updateUser: updatedUser,
+    });
+    optGenrate = "";
+  } catch (error) {
+    console.error("Error updating user:", error, error.message, error.code);
+    return res.status(500).json({
+      message: "Something went wrong while updating the user!",
+      error: error.message,
+    });
+  }
+};
+
 export {
   login,
   signup,
@@ -426,5 +475,6 @@ export {
   allblogs,
   allUser,
   userUpdate,
-  commitBlogs
+  commitBlogs,
+  opt,
 };
