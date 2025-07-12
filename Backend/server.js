@@ -10,24 +10,21 @@ import cookieParser from 'cookie-parser';
 import { authCheck } from './middleware/auth.js';
 const app = express();
 
+
 // Load environment variables
 dotenv.config();
 
 app.use(logReqRes("log.txt"))
 app.use(express.json());
 const corsOptions = {
-  origin: 'http://localhost:5173', // Specific frontend URL
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH',], // Allowed HTTP methods
-  credentials: true,  // Allow cookies to be sent with requests
+  origin: 'http://localhost:5174', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH',], 
+  credentials: true, 
 };
 
 app.use(cors(corsOptions));
 app.use(cookieParser())
 
-// Connect to MongoDB
-// mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-//   .then(() => console.log('MongoDB connected successfully'))
-//   .catch(err => console.error('MongoDB connection error:', err));
 
 connectMongoDB(process.env.MONGO_URI).then(()=>{console.log("connect to MongoDB")});
 //"mongodb://127.0.0.1:27017/BlogApp"
