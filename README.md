@@ -120,7 +120,7 @@ To get started with this project, follow the steps below:
     npm run dev
     ```
 
-    The frontend will be running on `http://localhost:3000`.
+    The frontend will be running on `http://localhost:5174`.
 
 ### Usage
 
