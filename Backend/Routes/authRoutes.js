@@ -6,6 +6,6 @@ router.post('/login',login);
 
 router.post('/signup', signup);
 
-router.post('/opt/:id', opt )
+router.post('/opt/:id', opt );
 
 export default router;
