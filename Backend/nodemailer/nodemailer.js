@@ -1,8 +1,5 @@
 import nodemailer from 'nodemailer'
 
-// function generateOTP() {
-//   return Math.floor(100000 + Math.random() * 900000);
-// }
 
 
 export function verifyEmail(userEmail, opt) {
@@ -14,7 +11,7 @@ export function verifyEmail(userEmail, opt) {
     service: 'gmail',
     auth: {
       user: 'arsalangg05@gmail.com', 
-      pass: 'gsrjumjoejdqmfqj'      // Gmail App Password (not normal password)
+      pass: 'gsrjumjoejdqmfqj'      
     }
   });
 
